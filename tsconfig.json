@@ -1,0 +1,19 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "allowUnreachableCode": false,
+    "outDir": "./build"
+  },
+  "include": ["./**/*"],
+  "exclude": [
+    "./plugins/**/*",
+    "./typings/**/*",
+    "./build/**/*" // This is what fixed it!
+  ]
+}
