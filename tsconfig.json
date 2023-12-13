@@ -7,7 +7,7 @@
     "jsx": "react-jsx",
     "strictNullChecks": true,
     "noImplicitAny": true,
-    "allowUnreachableCode": false,
+    // "allowUnreachableCode": false,
     "outDir": "./build"
   },
   "include": ["./**/*"],

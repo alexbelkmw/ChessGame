@@ -1,4 +1,5 @@
-import { DragEventHandler, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { isEven } from "../shaped/lib/mathUtils";
 import { Cell, Coordinate, Figure } from "./api/types";
 import cls from "./app.module.scss";
 import bB from "./assets/bB.png";
@@ -13,20 +14,13 @@ import wN from "./assets/wN.png";
 import wP from "./assets/wP.png";
 import wQ from "./assets/wQ.png";
 import wR from "./assets/wR.png";
-import {
-  bishopMove,
-  kingMove,
-  knightMove,
-  pawnMove,
-  queenMove,
-  rookMove,
-} from "./lib/chessMoving";
+import { initBoard } from "./board";
+import { isComplies } from "./lib/chessMoving";
 
 export const App = () => {
   const [chessCells, setChessCells] = useState<Cell[][]>([]);
-  const isEven = (n: number) => {
-    return n % 2 === 0;
-  };
+  const [cells, setCells] = useState(new Map<Coordinate, Cell>());
+  const [board, setBoard] = useState<JSX.Element[] | null>(null);
   const startArrangement: (cell: Coordinate) => Figure | undefined = (cell) => {
     const row = cell.row;
     const column = cell.column;
@@ -53,42 +47,13 @@ export const App = () => {
     return undefined;
   };
   useEffect(() => {
-    for (let i = 0; i < 8; i++) {
-      const chessRow: Cell[] = [];
-      for (let j = 0; j < 8; j++) {
-        chessRow.push({
-          coordinate: { row: i, column: j },
-          color: isEven(i) === isEven(j) ? "white" : "DarkOliveGreen",
-          figure: startArrangement({ row: i, column: j }),
-        });
-      }
-      setChessCells((prev) => [...prev, chessRow]);
-    }
+    const [newBoard, newCells] = initBoard(cells);
+    setBoard(newBoard);
+    setCells(newCells);
   }, []);
-  const isComplies = (cell: Cell, target: Coordinate) => {
-    const start: Coordinate = {
-      row: cell.coordinate.row,
-      column: cell.coordinate.column,
-    };
-    if (!cell.figure) return false;
-
-    switch (cell.figure.type) {
-      case "pawn":
-        return pawnMove(start, target, cell.figure.color);
-      case "rook":
-        return rookMove(start, target, chessCells);
-      case "knight":
-        return knightMove(start, target);
-      case "bishop":
-        return bishopMove(start, target, chessCells);
-      case "king":
-        return kingMove(start, target);
-      case "queen":
-        return queenMove(start, target, chessCells);
-      default:
-        return false;
-    }
-  };
+  useEffect(() => {
+    console.log("cells2", cells);
+  }, [cells]);
 
   const chessArrangement = (
     event: React.DragEvent<HTMLImageElement>,
@@ -118,7 +83,13 @@ export const App = () => {
     if (targetRow === undefined || targetColumn === undefined) return;
 
     setChessCells((prev) => {
-      if (!isComplies(dragCell, { row: targetRow, column: targetColumn })) {
+      if (
+        !isComplies(
+          dragCell,
+          { row: targetRow, column: targetColumn },
+          chessCells
+        )
+      ) {
         return prev;
       }
       return prev.map((row, i) => {
@@ -138,29 +109,7 @@ export const App = () => {
   return (
     <div className={cls.App}>
       <div id="board" className={cls.Board}>
-        {chessCells.map((row, i) => {
-          return (
-            <div key={"row-" + i} className={cls.Row}>
-              {row.map((cell, j) => {
-                return (
-                  <div
-                    key={`cell-${i}-${j}`}
-                    className={cls.Cell + ` none-${i}-${j}`}
-                    style={{ backgroundColor: cell.color }}
-                  >
-                    {cell.figure ? (
-                      <img
-                        className={` figure-${cell.color}-${i}-${j}`}
-                        onDragEnd={(event) => chessArrangement(event, cell)}
-                        src={cell.figure.image}
-                      />
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+        {board}
       </div>
     </div>
   );

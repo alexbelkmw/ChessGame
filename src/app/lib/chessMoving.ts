@@ -1,6 +1,35 @@
 import { Cell, Coordinate } from "../api/types";
 
-export const queenMove = (
+export const isComplies = (
+  cell: Cell,
+  target: Coordinate,
+  chessCells: Cell[][]
+) => {
+  const start: Coordinate = {
+    row: cell.coordinate.row,
+    column: cell.coordinate.column,
+  };
+  if (!cell.figure) return false;
+
+  switch (cell.figure.type) {
+    case "pawn":
+      return pawnMove(start, target, cell.figure.color);
+    case "rook":
+      return rookMove(start, target, chessCells);
+    case "knight":
+      return knightMove(start, target);
+    case "bishop":
+      return bishopMove(start, target, chessCells);
+    case "king":
+      return kingMove(start, target);
+    case "queen":
+      return queenMove(start, target, chessCells);
+    default:
+      return false;
+  }
+};
+
+const queenMove = (
   start: Coordinate,
   target: Coordinate,
   chessCells: Cell[][]
@@ -9,21 +38,21 @@ export const queenMove = (
     bishopMove(start, target, chessCells) || rookMove(start, target, chessCells)
   );
 };
-export const kingMove = (start: Coordinate, target: Coordinate) => {
+const kingMove = (start: Coordinate, target: Coordinate) => {
   //todo:  под боем или король рядом?
   return (
     Math.abs(start.row - target.row) <= 1 &&
     Math.abs(start.column - target.column) <= 1
   );
 };
-export const knightMove = (start: Coordinate, target: Coordinate) => {
+const knightMove = (start: Coordinate, target: Coordinate) => {
   return (
     Math.abs(start.column - target.column) +
       Math.abs(start.row - target.row) ===
     3
   );
 };
-export const bishopMove = (
+const bishopMove = (
   start: Coordinate,
   target: Coordinate,
   chessCells: Cell[][]
@@ -35,7 +64,7 @@ export const bishopMove = (
   );
 };
 
-export const rookMove = (
+const rookMove = (
   start: Coordinate,
   target: Coordinate,
   chessCells: Cell[][]
@@ -46,11 +75,7 @@ export const rookMove = (
   );
 };
 
-export const pawnMove = (
-  start: Coordinate,
-  target: Coordinate,
-  color: string
-) => {
+const pawnMove = (start: Coordinate, target: Coordinate, color: string) => {
   const pathRow = target.row - start.row;
   const pathColumn = target.column - start.column;
 
