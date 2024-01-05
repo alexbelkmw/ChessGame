@@ -1,9 +1,9 @@
-import { Cell, Coordinate } from "../api/types";
+import { Cell, Coordinate } from "../api/types/types";
 
 export const isComplies = (
   cell: Cell,
   target: Coordinate,
-  chessCells: Cell[][]
+  cells: Map<string, Cell>
 ) => {
   const start: Coordinate = {
     row: cell.coordinate.row,
@@ -13,17 +13,17 @@ export const isComplies = (
 
   switch (cell.figure.type) {
     case "pawn":
-      return pawnMove(start, target, cell.figure.color);
-    case "rook":
-      return rookMove(start, target, chessCells);
-    case "knight":
-      return knightMove(start, target);
-    case "bishop":
-      return bishopMove(start, target, chessCells);
-    case "king":
-      return kingMove(start, target);
-    case "queen":
-      return queenMove(start, target, chessCells);
+      return pawnMove(start, target, cell.figure.color, cells);
+    // case "rook":
+    //   return rookMove(start, target);
+    // case "knight":
+    //   return knightMove(start, target);
+    // case "bishop":
+    //   return bishopMove(start, target, chessCells);
+    // case "king":
+    //   return kingMove(start, target);
+    // case "queen":
+    //   return queenMove(start, target, chessCells);
     default:
       return false;
   }
@@ -32,11 +32,9 @@ export const isComplies = (
 const queenMove = (
   start: Coordinate,
   target: Coordinate,
-  chessCells: Cell[][]
+  cells: Map<string, Cell>
 ) => {
-  return (
-    bishopMove(start, target, chessCells) || rookMove(start, target, chessCells)
-  );
+  return bishopMove(start, target, cells) || rookMove(start, target, cells);
 };
 const kingMove = (start: Coordinate, target: Coordinate) => {
   //todo:  под боем или король рядом?
@@ -55,90 +53,90 @@ const knightMove = (start: Coordinate, target: Coordinate) => {
 const bishopMove = (
   start: Coordinate,
   target: Coordinate,
-  chessCells: Cell[][]
+  cells: Map<string, Cell>
 ) => {
   return (
     Math.abs(start.column - target.column) ===
       Math.abs(start.row - target.row) &&
-    noFiguresDiagonally(chessCells, start, target)
+    noFiguresDiagonally(cells, start, target)
   );
 };
 
 const rookMove = (
   start: Coordinate,
   target: Coordinate,
-  chessCells: Cell[][]
+  cells: Map<string, Cell>
 ) => {
   return (
     (start.row === target.row || start.column === target.column) &&
-    noFiguresStraight(start, target, chessCells)
+    noFiguresStraight(start, target, cells)
   );
 };
 
-const pawnMove = (start: Coordinate, target: Coordinate, color: string) => {
+const pawnMove = (
+  start: Coordinate,
+  target: Coordinate,
+  color: string,
+  cells: Map<string, Cell>
+) => {
   const pathRow = target.row - start.row;
   const pathColumn = target.column - start.column;
-
   const forward = color === "black" ? -1 : 1;
 
-  if (start.row === 6 || start.row === 1) {
-    return pathRow * forward <= 2 && pathColumn === 0;
+  if (pathColumn !== 0 || !noFiguresStraight(start, target, cells))
+    return false;
+
+  if (
+    (start.row === 6 && color === "black") ||
+    (start.row === 1 && color === "white")
+  ) {
+    return pathRow * forward <= 2;
   } else {
-    return pathRow * forward === 1 && pathColumn === 0;
+    return pathRow * forward === 1;
   }
 };
 
 const noFiguresDiagonally = (
-  chessCells: Cell[][],
+  cells: Map<string, Cell>,
   start: Coordinate,
   target: Coordinate
 ) => {
-  const startRow = start.row < target.row ? start.row : target.row;
-  const targetRow = start.row > target.row ? start.row : target.row;
-  const down = start.row < target.row;
-  const right = start.column < target.row;
-  let column = down ? start.column : target.column;
-  let figuteCount = 0;
-  const rows = chessCells.slice(startRow, targetRow + 1);
+  return true;
+  // const startRow = start.row < target.row ? start.row : target.row;
+  // const targetRow = start.row > target.row ? start.row : target.row;
+  // const down = start.row < target.row;
+  // const right = start.column < target.row;
+  // let column = down ? start.column : target.column;
+  // let figuteCount = 0;
+  // const rows = chessCells.slice(startRow, targetRow + 1);
 
-  rows.forEach((row) => {
-    if (row[column].figure) figuteCount++;
-    if (down === right) column++;
-    else column--;
-  });
+  // rows.forEach((row) => {
+  //   if (row[column].figure) figuteCount++;
+  //   if (down === right) column++;
+  //   else column--;
+  // });
 
-  return figuteCount === 1;
+  // return figuteCount === 1;
 };
+
 const noFiguresStraight = (
-  start: Coordinate,
-  target: Coordinate,
-  chessCells: Cell[][]
+  sCoord: Coordinate,
+  tCoord: Coordinate,
+  cells: Map<string, Cell>
 ) => {
-  const oneRow = start.row === target.row;
-  const oneColumn = start.column === target.column;
+  const oneColumn = sCoord.column === tCoord.column;
+  const start = oneColumn ? sCoord.row : sCoord.column;
+  const target = oneColumn ? tCoord.row : tCoord.column;
+  const constCoord = oneColumn ? sCoord.column : sCoord.row;
+  const direction = start < target ? 1 : -1;
+  let figureCount = 0;
 
-  if (!oneRow && !oneColumn) return false;
-
-  const startPoint = oneRow ? start.column : start.row;
-  const targetPoint = oneRow ? target.column : target.row;
-  const begin = startPoint < targetPoint ? startPoint + 1 : targetPoint + 1;
-  const length = Math.abs(startPoint - targetPoint) - 1;
-
-  if (oneRow) {
-    const startIndex = chessCells[start.row].findIndex(
-      (cell) => cell.coordinate.column === begin
-    );
-    const endIndex = chessCells[start.row].findIndex(
-      (cell) => cell.coordinate.column === begin + length
-    );
-    const cells = chessCells[start.row].slice(startIndex, endIndex);
-
-    return !cells.some((cell) => cell.figure);
+  for (let i = start; i !== target; i = i + direction) {
+    const key = oneColumn
+      ? `cell-${i}-${constCoord}`
+      : `cell-${constCoord}-${i}`;
+    if (cells.get(key)?.figure) figureCount++;
   }
 
-  if (oneColumn) {
-    const rows = chessCells.slice(begin, begin + length);
-
-    return !rows.some((row) => row[start.column].figure);
-  }
+  return figureCount <= 1;
 };

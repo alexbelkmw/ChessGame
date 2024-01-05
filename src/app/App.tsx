@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { Cell, Coordinate } from "./api/types";
+import { useDispatch } from "react-redux";
 import cls from "./app.module.scss";
 import { initBoard } from "./board";
 
 export const App = () => {
-  const [cells, setCells] = useState(new Map<string, Cell>());
   const [board, setBoard] = useState<JSX.Element[] | null>(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const [newBoard, newCells] = initBoard(cells, setCells);
-    setBoard(newBoard);
-    setCells(newCells);
+    setBoard(initBoard(dispatch));
   }, []);
 
   return (
