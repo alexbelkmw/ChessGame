@@ -1,33 +1,35 @@
 $boardSize: 650px;
 .App {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100vw;
-    height: 100vh;
-    background-color: #010b21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: #010b21;
 }
 .Board {
-    width: $boardSize;
-    height: $boardSize;
-    border: solid 12px;
-    box-sizing: content-box;
-    background-color: white;
+  display: flex;
+  flex-wrap: wrap;
+  width: $boardSize;
+  height: $boardSize;
+  border: solid 12px;
+  box-sizing: content-box;
+  background-color: white;
 }
 
 .Row {
-    display: flex;
+  display: flex;
 }
 
 .Cell {
-    display: flex;
-    width: $boardSize * 0.125;
-    height: $boardSize * 0.125;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  width: $boardSize * 0.125;
+  height: $boardSize * 0.125;
+  align-items: center;
+  justify-content: center;
 }
 
 .Figure {
-    width: $boardSize * 0.12;
-    height: $boardSize * 0.12;
+  width: $boardSize * 0.12;
+  height: $boardSize * 0.12;
 }

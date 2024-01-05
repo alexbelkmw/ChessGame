@@ -97,9 +97,6 @@ const noFiguresDiagonally = (
   const targetRow = start.row > target.row ? start.row : target.row;
   const down = start.row < target.row;
   const right = start.column < target.row;
-  console.log("down", down);
-  console.log("right", right);
-
   let column = down ? start.column : target.column;
   let figuteCount = 0;
   const rows = chessCells.slice(startRow, targetRow + 1);

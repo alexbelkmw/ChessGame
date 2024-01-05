@@ -13,6 +13,7 @@ import wN from "./assets/wN.png";
 import wP from "./assets/wP.png";
 import wQ from "./assets/wQ.png";
 import wR from "./assets/wR.png";
+import { isComplies } from "./lib/chessMoving";
 
 const startArrangement: (cell: Coordinate) => Figure | undefined = (cell) => {
   const row = cell.row;
@@ -40,44 +41,78 @@ const startArrangement: (cell: Coordinate) => Figure | undefined = (cell) => {
   return undefined;
 };
 
+const chessArrangement = (
+  event: React.DragEvent<HTMLImageElement>,
+  setCells: (value: (cells: Map<string, Cell>) => Map<string, Cell>) => void
+) => {
+  const targetId = document.elementFromPoint(event.clientX, event.clientY)?.id;
+
+  if (!targetId) return;
+
+  const figureId = event.currentTarget.id;
+  const startId = figureId.replace("figure", "cell");
+
+  if (targetId.split("-")[0] !== "cell") return;
+
+  const sCell = document.getElementById(startId);
+  const tCell = document.getElementById(targetId);
+  const figure = document.getElementById(figureId);
+
+  if (!sCell || !figure || !tCell) return;
+
+  setCells((prev) => {
+    if (!sCell.hasChildNodes()) return prev;
+
+    figure.setAttribute("id", targetId.replace("cell", "figure"));
+    sCell.removeChild(figure);
+    tCell.appendChild(figure);
+
+    const startCell = prev.get(startId);
+    const targetCell = prev.get(targetId);
+
+    if (!startCell || !targetCell) return prev;
+
+    prev.set(startId, { ...startCell, figure: undefined });
+    prev.set(targetId, { ...targetCell, figure: startCell.figure });
+    return new Map(prev);
+  });
+};
+
 export const initBoard = (
-  cells: Map<Coordinate, Cell>
-): [JSX.Element[], Map<Coordinate, Cell>] => {
+  cells: Map<string, Cell>,
+  setCells: (value: (cells: Map<string, Cell>) => Map<string, Cell>) => void
+): [JSX.Element[], Map<string, Cell>] => {
   const board: JSX.Element[] = [];
   for (let i = 0; i < 8; i++) {
-    const row: JSX.Element[] = [];
     for (let j = 0; j < 8; j++) {
       const color = isEven(i) === isEven(j) ? "white" : "DarkOliveGreen";
-      const figure = startArrangement({ row: i, column: j });
-      cells.set(
-        { row: i, column: j },
-        {
-          coordinate: { row: i, column: j },
-          color,
-          figure,
-        }
-      );
-      row.push(
+      const coordinate: Coordinate = { row: i, column: j };
+      const figure = startArrangement(coordinate);
+      const key = `cell-${i}-${j}`;
+      cells.set(key, {
+        coordinate: coordinate,
+        color,
+        figure,
+      });
+      board.push(
         <div
-          key={`cell-${i}-${j}`}
-          className={cls.Cell + ` none-${i}-${j}`}
+          key={key}
+          id={key}
+          className={cls.Cell}
           style={{ backgroundColor: color }}
         >
           {figure ? (
             <img
-              className={` figure-${color}-${i}-${j}`}
-              onDragEnd={(event) => {}}
+              id={`figure-${i}-${j}`}
+              onDragEnd={(event) => {
+                chessArrangement(event, setCells);
+              }}
               src={figure.image}
             />
           ) : null}
         </div>
       );
     }
-    board.push(
-      <div key={"row-" + i} className={cls.Row}>
-        {row}
-      </div>
-    );
   }
 
   return [board, cells];
