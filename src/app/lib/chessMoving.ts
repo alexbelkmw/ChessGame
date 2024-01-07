@@ -14,16 +14,16 @@ export const isComplies = (
   switch (cell.figure.type) {
     case "pawn":
       return pawnMove(start, target, cell.figure.color, cells);
-    // case "rook":
-    //   return rookMove(start, target);
-    // case "knight":
-    //   return knightMove(start, target);
-    // case "bishop":
-    //   return bishopMove(start, target, chessCells);
-    // case "king":
-    //   return kingMove(start, target);
-    // case "queen":
-    //   return queenMove(start, target, chessCells);
+    case "rook":
+      return rookMove(start, target, cells);
+    case "knight":
+      return knightMove(start, target);
+    case "bishop":
+      return bishopMove(start, target, cells);
+    case "king":
+      return kingMove(start, target);
+    case "queen":
+      return queenMove(start, target, cells);
     default:
       return false;
   }
@@ -45,9 +45,10 @@ const kingMove = (start: Coordinate, target: Coordinate) => {
 };
 const knightMove = (start: Coordinate, target: Coordinate) => {
   return (
-    Math.abs(start.column - target.column) +
-      Math.abs(start.row - target.row) ===
-    3
+    (Math.abs(start.column - target.column) === 2 &&
+      Math.abs(start.row - target.row) === 1) ||
+    (Math.abs(start.column - target.column) === 1 &&
+      Math.abs(start.row - target.row) === 2)
   );
 };
 const bishopMove = (
@@ -58,7 +59,7 @@ const bishopMove = (
   return (
     Math.abs(start.column - target.column) ===
       Math.abs(start.row - target.row) &&
-    noFiguresDiagonally(cells, start, target)
+    noFiguresDiagonally(start, target, cells)
   );
 };
 
@@ -97,26 +98,20 @@ const pawnMove = (
 };
 
 const noFiguresDiagonally = (
-  cells: Map<string, Cell>,
-  start: Coordinate,
-  target: Coordinate
+  sCoord: Coordinate,
+  tCoord: Coordinate,
+  cells: Map<string, Cell>
 ) => {
-  return true;
-  // const startRow = start.row < target.row ? start.row : target.row;
-  // const targetRow = start.row > target.row ? start.row : target.row;
-  // const down = start.row < target.row;
-  // const right = start.column < target.row;
-  // let column = down ? start.column : target.column;
-  // let figuteCount = 0;
-  // const rows = chessCells.slice(startRow, targetRow + 1);
-
-  // rows.forEach((row) => {
-  //   if (row[column].figure) figuteCount++;
-  //   if (down === right) column++;
-  //   else column--;
-  // });
-
-  // return figuteCount === 1;
+  const downDirection = sCoord.row < tCoord.row ? 1 : -1;
+  const rightDirection = sCoord.column < tCoord.column ? 1 : -1;
+  let column = sCoord.column;
+  let figureCount = 0;
+  for (let i = sCoord.row; i !== tCoord.row; i = i + downDirection) {
+    const key = `cell-${i}-${column}`;
+    column = column + rightDirection;
+    if (cells.get(key)?.figure) figureCount++;
+  }
+  return figureCount <= 1;
 };
 
 const noFiguresStraight = (
