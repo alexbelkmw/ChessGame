@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { isComplies } from "../../lib/chessMoving";
-import { Cell } from "../types/types";
+import { isComplies } from "../../entities/board/lib/chessMoving";
+import { Cell } from "../../entities/board/model/types";
 
 export interface GlobalState {
   cells: Map<string, Cell>;

@@ -1,4 +1,4 @@
-import { Cell, Coordinate } from "../api/types/types";
+import { Cell, Coordinate } from "../model/types";
 
 export const isComplies = (
   cell: Cell,

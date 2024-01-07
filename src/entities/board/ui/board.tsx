@@ -1,22 +1,14 @@
 import { Dispatch } from "@reduxjs/toolkit";
-import { isEven } from "../shaped/lib/mathUtils";
-import { ARRANGE_THE_PIECES, REARRANGE_THE_PIECES } from "./api/store/types";
-import { Cell, Coordinate, Figure } from "./api/types/types";
-import cls from "./app.module.scss";
-import bB from "./assets/bB.png";
-import bK from "./assets/bK.png";
-import bN from "./assets/bN.png";
-import bP from "./assets/bP.png";
-import bQ from "./assets/bQ.png";
-import bR from "./assets/bR.png";
-import wB from "./assets/wB.png";
-import wK from "./assets/wK.png";
-import wN from "./assets/wN.png";
-import wP from "./assets/wP.png";
-import wQ from "./assets/wQ.png";
-import wR from "./assets/wR.png";
+import { isEven } from "../../../shaped/lib/mathUtils";
+import { ARRANGE_THE_PIECES, REARRANGE_THE_PIECES } from "../model/actions";
+import { Cell, Coordinate, Figure } from "../model/types";
+import cls from "./style.module.scss";
 
-const startArrangement: (cell: Coordinate) => Figure | undefined = (cell) => {
+const startArrangement: (
+  cell: Coordinate,
+  figureImages: any
+) => Figure | undefined = (cell, figureImages) => {
+  const { bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR } = figureImages;
   const row = cell.row;
   const column = cell.column;
   const color = cell.row <= 1 ? "white" : "black";
@@ -42,14 +34,17 @@ const startArrangement: (cell: Coordinate) => Figure | undefined = (cell) => {
   return undefined;
 };
 
-export const initBoard = (dispatch: Dispatch): JSX.Element[] => {
+export const initBoard = (
+  dispatch: Dispatch,
+  figureImages: any
+): JSX.Element[] => {
   const cells = new Map<string, Cell>();
   const board: JSX.Element[] = [];
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 8; j++) {
       const color = isEven(i) === isEven(j) ? "white" : "DarkOliveGreen";
       const coordinate: Coordinate = { row: i, column: j };
-      const figure = startArrangement(coordinate);
+      const figure = startArrangement(coordinate, figureImages);
       const key = `cell-${i}-${j}`;
       cells.set(key, {
         coordinate: coordinate,
