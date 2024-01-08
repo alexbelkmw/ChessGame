@@ -42,30 +42,35 @@ const chessArrangement = (
 
   const figureId = event.currentTarget.id;
   const startId = figureId.replace("figure", "cell");
+  let targetFigure: HTMLElement | null = null;
+  const targetIdCell = targetId.replace("figure", "cell");
 
-  if (targetId.split("-")[0] !== "cell") return cells;
+  if (targetId.split("-")[0] === "figure") {
+    targetFigure = document.getElementById(targetId);
+  }
 
-  const sCell = document.getElementById(startId);
-  const tCell = document.getElementById(targetId);
-  const figure = document.getElementById(figureId);
+  const startElement = document.getElementById(startId);
+  const targetElement = document.getElementById(targetIdCell);
+  const currentFigure = document.getElementById(figureId);
 
-  if (!sCell || !figure || !tCell) return cells;
+  if (!startElement || !currentFigure || !targetElement) return cells;
 
-  if (!sCell.hasChildNodes()) return cells;
+  if (!startElement.hasChildNodes()) return cells;
 
   const startCell = cells.get(startId);
-  const targetCell = cells.get(targetId);
+  const targetCell = cells.get(targetIdCell);
 
   if (!startCell || !targetCell) return cells;
 
-  if (!isComplies(startCell, targetCell.coordinate, cells)) return cells;
+  if (!isComplies(startCell, targetCell, cells, targetElement, targetFigure))
+    return cells;
 
-  figure.setAttribute("id", targetId.replace("cell", "figure"));
-  sCell.removeChild(figure);
-  tCell.appendChild(figure);
+  currentFigure.setAttribute("id", targetId.replace("cell", "figure"));
+  startElement.removeChild(currentFigure);
+  targetElement.appendChild(currentFigure);
   const newCells = new Map(cells);
   newCells.set(startId, { ...startCell, figure: undefined });
-  newCells.set(targetId, { ...targetCell, figure: startCell.figure });
+  newCells.set(targetIdCell, { ...targetCell, figure: startCell.figure });
 
   return newCells;
 };
