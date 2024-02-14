@@ -1,50 +1,48 @@
-import { Dispatch } from "@reduxjs/toolkit";
+import { useDispatch } from "react-redux";
 import { isEven } from "../../../shaped/lib/mathUtils";
 import { ARRANGE_THE_PIECES, REARRANGE_THE_PIECES } from "../model/actions";
 import { Cell, Coordinate, Figure } from "../model/types";
+import { PawnPanel } from "./PanwPanel";
 import cls from "./style.module.scss";
 
-const startArrangement: (
-  cell: Coordinate,
-  figureImages: any
-) => Figure | undefined = (cell, figureImages) => {
-  const { bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR } = figureImages;
+const startArrangement: (cell: Coordinate) => Figure | undefined = (cell) => {
   const row = cell.row;
   const column = cell.column;
   const color = cell.row <= 1 ? "white" : "black";
-  if (row === 1) return { color, image: wP, type: "pawn" };
-  if (row === 6) return { color, image: bP, type: "pawn" };
+  if (row === 1 || row === 6) return { color, type: "Pawn" };
   if (row === 0 || row === 7) {
     switch (column) {
       case 0:
       case 7:
-        return { color, type: "rook", image: color === "white" ? wR : bR };
+        return { color, type: "Rook" };
       case 1:
       case 6:
-        return { color, type: "knight", image: color === "white" ? wN : bN };
+        return { color, type: "Knight" };
       case 2:
       case 5:
-        return { color, type: "bishop", image: color === "white" ? wB : bB };
+        return { color, type: "Bishop" };
       case 3:
-        return { color, type: "king", image: color === "white" ? wK : bK };
+        return { color, type: "King" };
       default:
-        return { color, type: "queen", image: color === "white" ? wQ : bQ };
+        return { color, type: "Queen" };
     }
   }
   return undefined;
 };
 
-export const initBoard = (
-  dispatch: Dispatch,
-  figureImages: any
-): JSX.Element[] => {
+interface IBoard {
+  figureImages: Record<string, string>;
+}
+
+export const Board = ({ figureImages }: IBoard): JSX.Element => {
+  const dispatch = useDispatch();
   const cells = new Map<string, Cell>();
   const board: JSX.Element[] = [];
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 8; j++) {
       const color = isEven(i) === isEven(j) ? "white" : "DarkOliveGreen";
       const coordinate: Coordinate = { row: i, column: j };
-      const figure = startArrangement(coordinate, figureImages);
+      const figure = startArrangement(coordinate);
       const key = `cell-${i}-${j}`;
       cells.set(key, {
         coordinate: coordinate,
@@ -67,7 +65,7 @@ export const initBoard = (
                   payload: { event },
                 });
               }}
-              src={figure.image}
+              src={figureImages[`${figure.color}${figure.type}`]}
             />
           ) : null}
         </div>
@@ -76,5 +74,10 @@ export const initBoard = (
   }
   dispatch({ type: ARRANGE_THE_PIECES, payload: { cells } });
 
-  return board;
+  return (
+    <div id="board" className={cls.Board}>
+      <PawnPanel figureImages={figureImages} />
+      {board}
+    </div>
+  );
 };

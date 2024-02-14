@@ -38,17 +38,17 @@ export const isComplies = (
   };
 
   switch (startCell.figure.type) {
-    case "pawn":
+    case "Pawn":
       return pawnMove(moveParams);
-    case "rook":
+    case "Rook":
       return rookMove(moveParams);
-    case "knight":
+    case "Knight":
       return knightMove(moveParams);
-    case "bishop":
+    case "Bishop":
       return bishopMove(moveParams);
-    case "king":
+    case "King":
       return kingMove(moveParams);
-    case "queen":
+    case "Queen":
       return queenMove(moveParams);
     default:
       return false;

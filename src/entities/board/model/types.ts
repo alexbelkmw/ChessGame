@@ -3,10 +3,17 @@ export interface Coordinate {
   column: number;
 }
 
+export type FigureTypes =
+  | "Pawn"
+  | "Rook"
+  | "Knight"
+  | "Bishop"
+  | "King"
+  | "Queen";
+
 export interface Figure {
-  type: "pawn" | "rook" | "knight" | "bishop" | "king" | "queen";
+  type: FigureTypes;
   color: string;
-  image: string;
 }
 
 export interface Cell {

@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import cls from "./styles/app.module.scss";
-import { initBoard } from "../entities/board/ui/board";
+import { Board } from "../entities/board/ui/board";
 import bB from "./assets/bB.png";
 import bK from "./assets/bK.png";
 import bN from "./assets/bN.png";
@@ -16,19 +14,24 @@ import wQ from "./assets/wQ.png";
 import wR from "./assets/wR.png";
 
 export const App = () => {
-  const figureImages = { bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR };
-  const [board, setBoard] = useState<JSX.Element[] | null>(null);
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    setBoard(initBoard(dispatch, figureImages));
-  }, []);
+  const figureImages = {
+    blackBishop: bB,
+    blackKing: bK,
+    blackKnight: bN,
+    blackPawn: bP,
+    blackQueen: bQ,
+    blackRook: bR,
+    whiteBishop: wB,
+    whiteKing: wK,
+    whiteKnight: wN,
+    whitePawn: wP,
+    whiteQueen: wQ,
+    whiteRook: wR,
+  };
 
   return (
     <div className={cls.App}>
-      <div id="board" className={cls.Board}>
-        {board}
-      </div>
+      <Board figureImages={figureImages} />
     </div>
   );
 };

@@ -1,9 +1,28 @@
 $boardSize: 650px;
+$cellSize: $boardSize * 0.125;
+
+.Board {
+  display: flex;
+  position: relative;
+  flex-wrap: wrap;
+  width: $boardSize;
+  height: $boardSize;
+  border: solid 12px;
+  box-sizing: content-box;
+  background-color: white;
+}
 
 .Cell {
   display: flex;
-  width: $boardSize * 0.125;
-  height: $boardSize * 0.125;
+  width: $cellSize;
+  height: $cellSize;
   align-items: center;
   justify-content: center;
+}
+
+.pawnPanel {
+  position: absolute;
+  width: $cellSize * 4;
+  height: $cellSize;
+  background-color: rgb(67, 92, 79);
 }

@@ -7,12 +7,3 @@ $boardSize: 650px;
   height: 100vh;
   background-color: #010b21;
 }
-.Board {
-  display: flex;
-  flex-wrap: wrap;
-  width: $boardSize;
-  height: $boardSize;
-  border: solid 12px;
-  box-sizing: content-box;
-  background-color: white;
-}
