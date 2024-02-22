@@ -1,23 +1,33 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { isComplies } from "../../entities/board/lib/chessMoving";
+import { checkKing, isComplies } from "../../entities/board/lib/chessMoving";
 import {
   REARRANGE_THE_PIECES,
   ARRANGE_THE_PIECES,
   REPLACE_PAWN,
 } from "../../entities/board/model/actions";
-import { Cell, FigureTypes } from "../../entities/board/model/types";
+import {
+  Cell,
+  colors,
+  FigureTypes,
+  KingsCoordinate,
+} from "../../entities/board/model/types";
 
 export interface GlobalState {
   cells: Map<string, Cell>;
   target: { id: string; figure: string } | null;
-  moveColor: string;
+  moveColor: colors;
   blockMove: boolean;
+  kingsCoordinate: KingsCoordinate;
 }
 const initState = {
   cells: new Map<string, Cell>(),
   target: null,
-  moveColor: "white",
+  moveColor: colors.white,
   blockMove: false,
+  kingsCoordinate: {
+    white: "cell-0-3",
+    black: "cell-7-3",
+  },
 };
 
 const reducer = (
@@ -47,7 +57,7 @@ const replacePawn: (
   payload: {
     figure: FigureTypes;
     targetCoordinate: string;
-    moveColor: string;
+    moveColor: colors;
     src: string;
   }
 ) => GlobalState = (state, payload) => {
@@ -66,7 +76,16 @@ const replacePawn: (
     figure: { color: payload.moveColor, type: payload.figure },
   });
 
-  return { ...state, blockMove: false, target: null, cells: newCells };
+  const newMoveColor =
+    payload.moveColor === colors.white ? colors.black : colors.white;
+
+  return {
+    ...state,
+    blockMove: false,
+    target: null,
+    cells: newCells,
+    moveColor: newMoveColor,
+  };
 };
 
 const chessArrangement: (
@@ -109,20 +128,38 @@ const chessArrangement: (
   const figure = startCell.figure;
 
   if (!figure) return state;
+  if (figure.color !== state.moveColor) return state;
 
-  if (!isComplies(startCell, targetCell, cells, targetElement, targetFigure))
-    return state;
+  if (!isComplies(startCell, targetCell, cells, false)) return state;
 
-  const target = targetId;
-  currentFigure.setAttribute("id", targetId.replace("cell", "figure"));
-  startElement.removeChild(currentFigure);
-  targetElement.appendChild(currentFigure);
   const newCells = new Map(cells);
   newCells.set(startId, { ...startCell, figure: undefined });
   newCells.set(targetIdCell, { ...targetCell, figure: startCell.figure });
+
   const blockMove =
     figure.type === "Pawn" &&
     (targetCell.coordinate.row === 0 || targetCell.coordinate.row === 7);
+
+  const target = targetId;
+  const moveColor = blockMove
+    ? figure.color
+    : figure.color === colors.white
+    ? colors.black
+    : colors.white;
+
+  const kingsCoordinate =
+    figure.type === "King"
+      ? { ...state.kingsCoordinate, [figure.color]: target }
+      : state.kingsCoordinate;
+  const kingCell = cells.get(kingsCoordinate[figure.color]);
+
+  if (!kingCell) return state;
+
+  if (!checkKing(newCells, figure.color, kingCell)) return state;
+
+  currentFigure.setAttribute("id", targetId.replace("cell", "figure"));
+  startElement.removeChild(currentFigure);
+  targetElement.appendChild(currentFigure);
 
   return {
     ...state,
@@ -130,7 +167,8 @@ const chessArrangement: (
     target: startCell.figure
       ? { figure: startCell.figure.type, id: target }
       : null,
-    moveColor: figure.color,
+    moveColor,
     blockMove,
+    kingsCoordinate,
   };
 };

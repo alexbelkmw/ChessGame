@@ -1,22 +1,19 @@
-import { Cell, Coordinate } from "../model/types";
+import { Cell, colors, Coordinate, KingsCoordinate } from "../model/types";
 
 interface MoveParams {
   start: Coordinate;
   target: Coordinate;
   color: string;
   cells: Map<string, Cell>;
-  targetCell: Cell;
-  targetElement: HTMLElement;
-  targetFigure: HTMLElement | null;
+  check: boolean;
 }
 
-export const isComplies = (
+export const isComplies: (
   startCell: Cell,
   targetCell: Cell,
   cells: Map<string, Cell>,
-  targetElement: HTMLElement,
-  targetFigure: HTMLElement | null
-) => {
+  check: boolean
+) => boolean = (startCell, targetCell, cells, check) => {
   const start: Coordinate = {
     row: startCell.coordinate.row,
     column: startCell.coordinate.column,
@@ -32,9 +29,7 @@ export const isComplies = (
     target,
     color: startCell.figure.color,
     cells,
-    targetCell,
-    targetElement,
-    targetFigure,
+    check,
   };
 
   switch (startCell.figure.type) {
@@ -60,42 +55,40 @@ const queenMove = (move: MoveParams) => {
 };
 
 const kingMove = (move: MoveParams) => {
-  const { start, target, color, targetCell, targetElement, targetFigure } =
-    move;
-  //todo:  под боем или король рядом?
+  const { start, target, cells, color } = move;
+  const startCell = cells.get(`cell-${start.row}-${start.column}`);
+  const targetCell = cells.get(`cell-${target.row}-${target.column}`);
+
+  if (!startCell || !startCell.figure || !targetCell) return false;
+
   if (
     Math.abs(start.row - target.row) <= 1 &&
     Math.abs(start.column - target.column) <= 1
   ) {
-    if (!targetFigure) return true;
-    return eatFigure(targetCell, color, targetElement, targetFigure);
+    return (
+      checkKing(cells, startCell.figure?.color, targetCell) && eatFigure(move)
+    );
+  } else {
+    return false;
   }
 };
 
 const knightMove = (move: MoveParams) => {
-  const { start, target, color, targetCell, targetElement, targetFigure } =
-    move;
+  const { start, target } = move;
   if (
     (Math.abs(start.column - target.column) === 2 &&
       Math.abs(start.row - target.row) === 1) ||
     (Math.abs(start.column - target.column) === 1 &&
       Math.abs(start.row - target.row) === 2)
   ) {
-    if (!targetFigure) return true;
-    return eatFigure(targetCell, color, targetElement, targetFigure);
+    return eatFigure(move);
+  } else {
+    return false;
   }
 };
 
 const bishopMove = (move: MoveParams) => {
-  const {
-    start,
-    target,
-    color,
-    cells,
-    targetCell,
-    targetElement,
-    targetFigure,
-  } = move;
+  const { start, target, cells } = move;
   const diagonally =
     Math.abs(start.column - target.column) === Math.abs(start.row - target.row);
 
@@ -103,25 +96,14 @@ const bishopMove = (move: MoveParams) => {
 
   if (noFiguresDiagonally(start, target, cells) === 0) return true;
 
-  if (
-    noFiguresDiagonally(start, target, cells) === 1 &&
-    eatFigure(targetCell, color, targetElement, targetFigure)
-  )
+  if (noFiguresDiagonally(start, target, cells) === 1 && eatFigure(move))
     return true;
 
   return false;
 };
 
 const rookMove = (move: MoveParams) => {
-  const {
-    start,
-    target,
-    color,
-    cells,
-    targetCell,
-    targetElement,
-    targetFigure,
-  } = move;
+  const { start, target, cells } = move;
   const straightLine =
     start.row === target.row || start.column === target.column;
 
@@ -130,23 +112,14 @@ const rookMove = (move: MoveParams) => {
   } else if (
     figuresStraight(start, target, cells) === 1 &&
     straightLine &&
-    eatFigure(targetCell, color, targetElement, targetFigure)
+    eatFigure(move)
   ) {
     return start.row === target.row || start.column === target.column;
   } else return false;
 };
 
 const pawnMove = (move: MoveParams) => {
-  const {
-    start,
-    target,
-    color,
-    cells,
-    targetCell,
-    targetElement,
-    targetFigure,
-  } = move;
-
+  const { start, target, color, cells } = move;
   const pathRow = target.row - start.row;
   const pathColumn = target.column - start.column;
   const forward = color === "black" ? -1 : 1;
@@ -164,20 +137,31 @@ const pawnMove = (move: MoveParams) => {
   } else if (
     Math.abs(pathColumn) === 1 &&
     pathRow * forward === 1 &&
-    eatFigure(targetCell, color, targetElement, targetFigure)
+    eatFigure(move)
   ) {
     return true;
   } else return false;
 };
 
-const eatFigure = (
-  targetCell: Cell,
-  color: string,
-  targetElement: HTMLElement,
-  targetFigure: HTMLElement | null
-) => {
-  if (targetCell.figure && targetCell.figure.color !== color && targetFigure) {
-    targetElement.removeChild(targetFigure);
+const eatFigure = (move: MoveParams) => {
+  const { target, color, cells, check } = move;
+
+  const targetCell = cells.get(`cell-${target.row}-${target.column}`);
+  const targetFigureElement = document.getElementById(
+    `figure-${target.row}-${target.column}`
+  );
+  const targetCellElement = document.getElementById(
+    `cell-${target.row}-${target.column}`
+  );
+
+  if (!targetCell) return false;
+
+  if (!targetCell.figure) return true;
+
+  if (!targetFigureElement || !targetCellElement) return false;
+
+  if (targetCell.figure.color !== color && targetFigureElement) {
+    !check && targetCellElement.removeChild(targetFigureElement);
     return true;
   }
   return false;
@@ -224,4 +208,24 @@ const figuresStraight = (
   }
 
   return figureCount;
+};
+
+export const checkKing: (
+  cells: Map<string, Cell>,
+  movingColor: colors,
+  targetCell: Cell
+) => boolean = (cells, movingColor, targetCell) => {
+  let check = true;
+
+  cells.forEach((cell) => {
+    if (!cell.figure) return;
+
+    if (cell.figure.color === movingColor) return;
+
+    if (isComplies(cell, targetCell, cells, true)) {
+      check = false;
+    }
+  });
+
+  return check;
 };

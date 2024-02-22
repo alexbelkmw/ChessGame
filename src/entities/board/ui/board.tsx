@@ -1,14 +1,14 @@
 import { useDispatch } from "react-redux";
 import { isEven } from "../../../shaped/lib/mathUtils";
 import { ARRANGE_THE_PIECES, REARRANGE_THE_PIECES } from "../model/actions";
-import { Cell, Coordinate, Figure } from "../model/types";
+import { Cell, colors, Coordinate, Figure } from "../model/types";
 import { PawnPanel } from "./PanwPanel";
 import cls from "./style.module.scss";
 
 const startArrangement: (cell: Coordinate) => Figure | undefined = (cell) => {
   const row = cell.row;
   const column = cell.column;
-  const color = cell.row <= 1 ? "white" : "black";
+  const color = cell.row <= 1 ? colors.white : colors.black;
   if (row === 1 || row === 6) return { color, type: "Pawn" };
   if (row === 0 || row === 7) {
     switch (column) {

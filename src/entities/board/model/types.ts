@@ -13,11 +13,21 @@ export type FigureTypes =
 
 export interface Figure {
   type: FigureTypes;
-  color: string;
+  color: colors;
 }
 
 export interface Cell {
   coordinate: Coordinate;
   color: string;
   figure?: Figure;
+}
+
+export interface KingsCoordinate {
+  black: string;
+  white: string;
+}
+
+export enum colors {
+  black = "black",
+  white = "white",
 }
