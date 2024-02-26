@@ -73,7 +73,11 @@ const replacePawn: (
   currentFigure?.setAttribute("src", payload.src);
   newCells.set(targetCell, {
     ...currentCell,
-    figure: { color: payload.moveColor, type: payload.figure },
+    figure: {
+      color: payload.moveColor,
+      type: payload.figure,
+      startPosition: false,
+    },
   });
 
   const newMoveColor =
@@ -114,6 +118,8 @@ const chessArrangement: (
   const targetElement = document.getElementById(targetIdCell);
   const currentFigure = document.getElementById(figureId);
 
+  if (startElement === targetElement) return state;
+
   if (!startElement || !currentFigure || !targetElement) return state;
 
   if (!startElement.hasChildNodes()) return state;
@@ -134,7 +140,10 @@ const chessArrangement: (
 
   const newCells = new Map(cells);
   newCells.set(startId, { ...startCell, figure: undefined });
-  newCells.set(targetIdCell, { ...targetCell, figure: startCell.figure });
+  newCells.set(targetIdCell, {
+    ...targetCell,
+    figure: { ...figure, startPosition: false },
+  });
 
   const blockMove =
     figure.type === "Pawn" &&
@@ -149,7 +158,7 @@ const chessArrangement: (
 
   const kingsCoordinate =
     figure.type === "King"
-      ? { ...state.kingsCoordinate, [figure.color]: target }
+      ? { ...state.kingsCoordinate, [figure.color]: targetIdCell }
       : state.kingsCoordinate;
   const kingCell = cells.get(kingsCoordinate[figure.color]);
 

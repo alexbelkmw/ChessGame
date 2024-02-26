@@ -1,4 +1,4 @@
-import { Cell, colors, Coordinate, KingsCoordinate } from "../model/types";
+import { Cell, colors, Coordinate } from "../model/types";
 
 interface MoveParams {
   start: Coordinate;
@@ -65,12 +65,90 @@ const kingMove = (move: MoveParams) => {
     Math.abs(start.row - target.row) <= 1 &&
     Math.abs(start.column - target.column) <= 1
   ) {
+    const checkCells = new Map(cells);
+    checkCells.set(`cell-${target.row}-${target.column}`, {
+      ...targetCell,
+      figure: undefined,
+    });
     return (
-      checkKing(cells, startCell.figure?.color, targetCell) && eatFigure(move)
+      checkKing(checkCells, startCell.figure?.color, targetCell) &&
+      eatFigure(move)
     );
+  } else if (
+    Math.abs(start.row - target.row) === 0 &&
+    Math.abs(start.column - target.column) === 2
+  ) {
+    if (!checkKing(cells, startCell.figure?.color, startCell)) return false;
+    if (!checkKing(cells, startCell.figure?.color, targetCell)) return false;
+
+    const king = startCell.figure;
+
+    if (!king || !king.startPosition) return false;
+
+    if (!casting(start, target, cells)) return false;
+
+    return true;
   } else {
     return false;
   }
+};
+
+const casting: (
+  start: Coordinate,
+  target: Coordinate,
+  cells: Map<string, Cell>
+) => boolean = (start, target, cells) => {
+  const rookColumn = start.column > target.column ? 0 : 7;
+  const middleColumn = start.column > target.column ? -1 : 1;
+  const rookCell = cells.get(`cell-${target.row}-${rookColumn}`);
+  const startCell = cells.get(`cell-${start.row}-${start.column}`);
+  const targetCell = cells.get(`cell-${target.row}-${target.column}`);
+  const middleCell = cells.get(
+    `cell-${target.row}-${start.column + middleColumn}`
+  );
+  const kightCell =
+    start.column < target.column
+      ? cells.get(`cell-${target.row}-${start.column + middleColumn + 1}`)
+      : false;
+
+  const color = startCell?.figure?.color;
+
+  const rook = rookCell?.figure;
+
+  if (!rook || !rook.startPosition) return false;
+  if (!middleCell || !targetCell || !startCell) return false;
+  if (!color) return false;
+  if (!checkKing(cells, color, middleCell)) return false;
+  if (middleCell.figure || targetCell.figure || (kightCell && kightCell.figure))
+    return false;
+
+  const rooKElement = document.getElementById(
+    `cell-${target.row}-${rookColumn}`
+  );
+  const rookFigureEl = document.getElementById(
+    `figure-${target.row}-${rookColumn}`
+  );
+  const middleElement = document.getElementById(
+    `cell-${target.row}-${start.column + middleColumn}`
+  );
+
+  if (!rookFigureEl) return false;
+  if (!rooKElement) return false;
+  if (!middleElement) return false;
+  if (!startCell) return false;
+  if (!targetCell) return false;
+
+  rookFigureEl.setAttribute(
+    "id",
+    `figure-${target.row}-${start.column + middleColumn}`
+  );
+  rooKElement.removeChild(rookFigureEl);
+  middleElement.appendChild(rookFigureEl);
+
+  startCell.figure = undefined;
+  targetCell.figure = rook;
+
+  return true;
 };
 
 const knightMove = (move: MoveParams) => {
@@ -144,7 +222,7 @@ const pawnMove = (move: MoveParams) => {
 };
 
 const eatFigure = (move: MoveParams) => {
-  const { target, color, cells, check } = move;
+  const { start, target, color, cells, check } = move;
 
   const targetCell = cells.get(`cell-${target.row}-${target.column}`);
   const targetFigureElement = document.getElementById(
@@ -156,7 +234,18 @@ const eatFigure = (move: MoveParams) => {
 
   if (!targetCell) return false;
 
-  if (!targetCell.figure) return true;
+  if (!targetCell.figure) {
+    const startCell = cells.get(`cell-${start.row}-${start.column}`);
+    const figure = startCell?.figure;
+
+    if (!figure) return false;
+
+    if (figure.type === "King" || figure.type === "Knight") {
+      return true;
+    }
+
+    return false;
+  }
 
   if (!targetFigureElement || !targetCellElement) return false;
 
@@ -185,6 +274,7 @@ const noFiguresDiagonally = (
     column = column + rightDirection;
     if (cells.get(key)?.figure) figureCount++;
   }
+
   return figureCount;
 };
 

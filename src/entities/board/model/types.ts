@@ -14,6 +14,7 @@ export type FigureTypes =
 export interface Figure {
   type: FigureTypes;
   color: colors;
+  startPosition: boolean;
 }
 
 export interface Cell {
