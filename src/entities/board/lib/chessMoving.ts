@@ -8,6 +8,7 @@ interface MoveParams {
   check: boolean;
 }
 
+/* Проверка на возможность перемещения */
 export const isComplies: (
   startCell: Cell,
   targetCell: Cell,
@@ -93,6 +94,7 @@ const kingMove = (move: MoveParams) => {
   }
 };
 
+/* Рокировка */
 const casting: (
   start: Coordinate,
   target: Coordinate,
@@ -256,6 +258,7 @@ const eatFigure = (move: MoveParams) => {
   return false;
 };
 
+/* Наличие фигур по диагональному пути */
 const noFiguresDiagonally = (
   sCoord: Coordinate,
   tCoord: Coordinate,
@@ -278,6 +281,7 @@ const noFiguresDiagonally = (
   return figureCount;
 };
 
+/* Наличие фигур по прямому пути */
 const figuresStraight = (
   sCoord: Coordinate,
   tCoord: Coordinate,
@@ -300,6 +304,7 @@ const figuresStraight = (
   return figureCount;
 };
 
+/* Проверка под поем ли клетка, куда перемещается или где стоит король */
 export const checkKing: (
   cells: Map<string, Cell>,
   movingColor: colors,

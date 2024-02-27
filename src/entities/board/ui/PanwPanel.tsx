@@ -7,12 +7,17 @@ interface IPanel {
 }
 const CELL_SIZE = 650 * 0.125;
 
+/* Панель открывается при достижении пешкой противоположного края */
 export const PawnPanel = ({ figureImages }: IPanel) => {
   const dispatch = useDispatch();
   const replFigures = ["Queen", "Bishop", "Knight", "Rook"];
 
-  const { target, moveColor } = useSelector((state: any) => state);
+  const {
+    target, //описание целевой фигуры
+    moveColor,
+  } = useSelector((state: any) => state);
 
+  /* Превразает id в координату */
   const parsId = (id: string | null) => {
     if (!id) return { tRow: undefined, tColumn: undefined };
     const params = id.split("-");
@@ -31,6 +36,7 @@ export const PawnPanel = ({ figureImages }: IPanel) => {
 
   if (tRow !== "0" && tRow !== "7") return null;
 
+  /* Вычисляет по координатам фигуры положение панель рядом с ней */
   const columnOffset = Number(tColumn);
   const left = CELL_SIZE * 1.5 * -1 + CELL_SIZE * columnOffset;
   const top = tRow === "0" ? (CELL_SIZE + 12) * -1 : CELL_SIZE * 8 + 12;

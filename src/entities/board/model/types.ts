@@ -19,7 +19,6 @@ export interface Figure {
 
 export interface Cell {
   coordinate: Coordinate;
-  color: string;
   figure?: Figure;
 }
 
