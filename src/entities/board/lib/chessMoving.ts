@@ -56,9 +56,11 @@ const queenMove = (move: MoveParams) => {
 };
 
 const kingMove = (move: MoveParams) => {
-  const { start, target, cells, color } = move;
+  const { start, target, cells, check } = move;
   const startCell = cells.get(`cell-${start.row}-${start.column}`);
   const targetCell = cells.get(`cell-${target.row}-${target.column}`);
+
+  if (check) return false;
 
   if (!startCell || !startCell.figure || !targetCell) return false;
 
@@ -246,13 +248,14 @@ const eatFigure = (move: MoveParams) => {
       return true;
     }
 
+    if (figure.type === "Pawn" && check) return true
+
     return false;
   }
 
   if (!targetFigureElement || !targetCellElement) return false;
 
   if (targetCell.figure.color !== color && targetFigureElement) {
-    !check && targetCellElement.removeChild(targetFigureElement);
     return true;
   }
   return false;
@@ -304,7 +307,7 @@ const figuresStraight = (
   return figureCount;
 };
 
-/* Проверка под поем ли клетка, куда перемещается или где стоит король */
+/* Проверка под боем ли клетка, куда перемещается или где стоит король */
 export const checkKing: (
   cells: Map<string, Cell>,
   movingColor: colors,
@@ -316,6 +319,21 @@ export const checkKing: (
     if (!cell.figure) return;
 
     if (cell.figure.color === movingColor) return;
+
+    if (
+      cell.figure.type === "King" &&
+      Math.abs(targetCell.coordinate.column - cell.coordinate.column) <= 1 &&
+      Math.abs(targetCell.coordinate.row - cell.coordinate.row) <= 1
+    ) {
+      check = false;
+    }
+
+    if (
+      cell.figure.type === "Pawn" &&
+      cell.coordinate.column === targetCell.coordinate.column
+    ) {
+      return;
+    }
 
     if (isComplies(cell, targetCell, cells, true)) {
       check = false;

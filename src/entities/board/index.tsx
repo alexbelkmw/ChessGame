@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { isEven } from "../../shaped/lib/mathUtils";
 import { startArrangement } from "./lib/startArrangement";
-import { ARRANGE_THE_PIECES, REARRANGE_THE_PIECES } from "./model/actions";
+import { ARRANGE_THE_PIECES } from "./model/actions";
 import { Cell, Coordinate } from "./model/types";
 import { PawnPanel } from "./ui/PanwPanel";
 import cls from "./ui/style.module.scss";
+import { FigureImage } from "./ui/Figure";
 
 interface IBoard {
   figureImages: Record<string, string>;
@@ -14,6 +15,8 @@ interface IBoard {
 export const Board = ({ figureImages }: IBoard): JSX.Element => {
   const dispatch = useDispatch();
   const [board, setBoard] = useState<JSX.Element[]>([]);
+  const cells: Map<string, Cell> = useSelector((state: any) => state.cells)
+
 
   /* Построение шахматной доски при первичном рендере.
   Набор клеток не зависит от состояния фигур.
@@ -41,18 +44,12 @@ export const Board = ({ figureImages }: IBoard): JSX.Element => {
             className={cls.Cell}
             style={{ backgroundColor: color }}
           >
-            {figure ? (
-              <img
-                id={`figure-${i}-${j}`}
-                onDragEnd={(event) => {
-                  dispatch({
-                    type: REARRANGE_THE_PIECES,
-                    payload: { event },
-                  });
-                }}
-                src={figureImages[`${figure.color}${figure.type}`]}
-              />
-            ) : null}
+            <FigureImage
+              row={i}
+              column={j}
+              figureImages={figureImages}
+              figure={figure}
+            />
           </div>
         );
       }

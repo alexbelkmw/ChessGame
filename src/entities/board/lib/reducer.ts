@@ -159,6 +159,7 @@ const chessArrangement: (
   /* До этого момента проверялись различные условия, теперь происходит изменение в дереве элементов и возврат нового состояния */
   currentFigure.setAttribute("id", targetId.replace("cell", "figure"));
   startElement.removeChild(currentFigure);
+  targetElement.childNodes.forEach(child => targetElement.removeChild(child))
   targetElement.appendChild(currentFigure);
 
   return {
