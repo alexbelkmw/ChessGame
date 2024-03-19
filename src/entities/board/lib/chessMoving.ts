@@ -126,32 +126,6 @@ const casting: (
   if (middleCell.figure || targetCell.figure || (kightCell && kightCell.figure))
     return false;
 
-  const rooKElement = document.getElementById(
-    `cell-${target.row}-${rookColumn}`
-  );
-  const rookFigureEl = document.getElementById(
-    `figure-${target.row}-${rookColumn}`
-  );
-  const middleElement = document.getElementById(
-    `cell-${target.row}-${start.column + middleColumn}`
-  );
-
-  if (!rookFigureEl) return false;
-  if (!rooKElement) return false;
-  if (!middleElement) return false;
-  if (!startCell) return false;
-  if (!targetCell) return false;
-
-  rookFigureEl.setAttribute(
-    "id",
-    `figure-${target.row}-${start.column + middleColumn}`
-  );
-  rooKElement.removeChild(rookFigureEl);
-  middleElement.appendChild(rookFigureEl);
-
-  startCell.figure = undefined;
-  targetCell.figure = rook;
-
   return true;
 };
 

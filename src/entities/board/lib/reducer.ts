@@ -97,22 +97,9 @@ const chessArrangement: (
 
   const figureId = event.currentTarget.id;
   const startId = figureId.replace("figure", "cell");
-  let targetFigure: HTMLElement | null = null;
   const targetIdCell = targetId.replace("figure", "cell");
 
-  if (targetId.split("-")[0] === "figure") {
-    targetFigure = document.getElementById(targetId);
-  }
-
-  const startElement = document.getElementById(startId);
-  const targetElement = document.getElementById(targetIdCell);
-  const currentFigure = document.getElementById(figureId);
-
-  if (startElement === targetElement) return state;
-
-  if (!startElement || !currentFigure || !targetElement) return state;
-
-  if (!startElement.hasChildNodes()) return state;
+  if (document.getElementById(startId) === document.getElementById(targetIdCell)) return state;
 
   const cells = state.cells;
 
@@ -123,11 +110,12 @@ const chessArrangement: (
 
   const figure = startCell.figure;
 
-  if (!figure) return state;
-  if (figure.color !== state.moveColor) return state;
+  if (figure?.color !== state.moveColor) return state;
 
+  /* Проверка на перемещение фигуры по правилам */
   if (!isComplies(startCell, targetCell, cells, false)) return state;
 
+  /* Новый порядок фигур */
   const newCells = new Map(cells);
   newCells.set(startId, { ...startCell, figure: undefined });
   newCells.set(targetIdCell, {
@@ -135,38 +123,45 @@ const chessArrangement: (
     figure: { ...figure, startPosition: false },
   });
 
+  /* Блокировка хода, когда доступна замена пешки */
   const blockMove =
     figure.type === "Pawn" &&
     (targetCell.coordinate.row === 0 || targetCell.coordinate.row === 7);
 
-  const target = targetId;
+  /* Очередность хода по цвету */
   const moveColor = blockMove
     ? figure.color
     : figure.color === colors.white
     ? colors.black
     : colors.white;
 
+  /* При любом перемещении фигур проверяем шаг королю */
   const kingsCoordinate =
     figure.type === "King"
       ? { ...state.kingsCoordinate, [figure.color]: targetIdCell }
       : state.kingsCoordinate;
   const kingCell = cells.get(kingsCoordinate[figure.color]);
-
   if (!kingCell) return state;
-
   if (!checkKing(newCells, figure.color, kingCell)) return state;
 
-  /* До этого момента проверялись различные условия, теперь происходит изменение в дереве элементов и возврат нового состояния */
-  currentFigure.setAttribute("id", targetId.replace("cell", "figure"));
-  startElement.removeChild(currentFigure);
-  targetElement.childNodes.forEach(child => targetElement.removeChild(child))
-  targetElement.appendChild(currentFigure);
+  /* До этого момента проверялись различные условия, теперь происходит возврат нового состояния */
+  
+  if (figure.type === "King" && Math.abs(startCell.coordinate.column - targetCell.coordinate.column) === 2) {
+    const rootStart = targetCell.coordinate.column === 1 ? 0 : 7
+    const rootOffset = targetCell.coordinate.column === 1 ? 2 : 4
+    const rootCell = newCells.get(`cell-${targetCell.coordinate.row}-${rootStart}`)
+    if (rootCell) {
+      /* Рокировка */
+      newCells.set(`cell-${targetCell.coordinate.row}-${rootStart}`, {...rootCell, figure: undefined})
+      newCells.set(`cell-${targetCell.coordinate.row}-${rootOffset}`, {...rootCell, figure: rootCell.figure})
+    } else return state
+  }
 
   return {
     ...state,
     cells: newCells,
     target: startCell.figure
-      ? { figure: startCell.figure.type, id: target }
+      ? { figure: startCell.figure.type, id: targetId }
       : null,
     moveColor,
     blockMove,
